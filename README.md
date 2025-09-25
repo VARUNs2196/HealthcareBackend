@@ -1,154 +1,192 @@
-Healthcare Backend API
-Table of Contents
-Project Title
+# Healthcare Backend API
 
-Business Understanding
+A secure and modular backend system for managing healthcare data.  
+Built with **Node.js**, **Express.js**, and **PostgreSQL** for persistence.  
 
-Technologies
+---
 
-Setup and Installation
+## Demo Link
+> (Add deployment link here if hosted, e.g., Render, Railway, or local demo URL)
 
-API Endpoints
+---
 
-Screenshots and Results
+## Table of Contents
+- [Business Understanding](#business-understanding)
+- [Data Understanding](#data-understanding)
+- [Screenshots of Visualizations/Results](#screenshots-of-visualizationsresults)
+- [Technologies](#technologies)
+- [Setup](#setup)
+- [Approach](#approach)
+- [Status](#status)
+- [Credits](#credits)
 
-Credits
+---
 
-Business Understanding
-This project is a backend system for a healthcare application, developed using Node.js and Express.js. It provides a secure and robust API for managing user, patient, and doctor data.
+## Business Understanding
+Healthcare providers often need a digital solution to manage **patients, doctors, and mappings** between them.  
 
-Technologies
-Backend Framework: Node.js and Express.js
+This backend:
+- Allows users to **register/login securely**.  
+- Enables doctors to be **created, updated, and managed**.  
+- Supports **patient-doctor mappings** (many-to-many relationship).  
+- Provides authentication and authorization with **JWT**.
 
-Database: PostgreSQL
+It can serve as the backend for:
+- Appointment booking apps  
+- Telemedicine platforms  
+- Medical record management  
 
-Database Driver: pg
+---
 
-Authentication: jsonwebtoken and bcryptjs
+## Data Understanding
 
-Environment Variables: dotenv
+### Entities & Relationships
+- **Users** → register/login with email & password  
+- **Patients** → belong to a specific user  
+- **Doctors** → independent entity with a `specialty`  
+- **Patient_Doctor_Mappings** → connects patients with doctors  
 
-API Client: Postman/Insomnia
+### Database Schema
+```sql
+Users(id, name, email, password)
+Patients(id, name, user_id)
+Doctors(id, name, specialty)
+Patient_Doctor_Mappings(id, patient_id, doctor_id)
+```
+## Screenshots of Visualizations/Results
 
-Setup and Installation
-Clone the repository:
+### Register a new user
+![Register User](screenshots/register.png)
 
-git clone <your-repository-url>
+### Log in and get a JWT token
+![Login](screenshots/login.png)
+
+### Add a new patient
+![Add Patient](screenshots/add-patient.png)
+
+### Add a new doctor
+![Add Doctor](screenshots/add-doctor.png)
+
+### Retrieve all patients
+![All Patients](screenshots/get-patients.png)
+
+### Get a specific patient’s details
+![Patient Details](screenshots/get-patient.png)
+
+### Update a patient’s details
+![Update Patient](screenshots/update-patient.png)
+
+### Retrieve all doctors
+![All Doctors](screenshots/get-doctors.png)
+
+### Get a specific doctor’s details
+![Doctor Details](screenshots/get-doctor.png)
+
+### Update a doctor’s details
+![Update Doctor](screenshots/update-doctor.png)
+
+### Assign a doctor to a patient
+![Assign Doctor](screenshots/assign-doctor.png)
+
+### Retrieve all patient-doctor mappings
+![Mappings](screenshots/get-mappings.png)
+
+### Get all doctors assigned to a specific patient
+![Patient Doctors](screenshots/get-patient-doctors.png)
+
+### Remove a doctor from a patient
+![Remove Mapping](screenshots/remove-mapping.png)
+
+### Delete a patient record
+![Delete Patient](screenshots/delete-patient.png)
+
+### Delete a doctor record
+![Delete Doctor](screenshots/delete-doctor.png)
+
+---
+
+## Technologies
+
+- **Node.js (Express.js)**
+- **PostgreSQL (primary database)**
+- **JWT** (authentication & authorization)
+- **bcrypt.js** (password hashing)
+- **dotenv** (environment configuration)
+- *(Optional)* Mongoose for MongoDB integration
+
+---
+
+## Setup
+
+### Prerequisites
+
+- Node.js (>= 14.x)
+- PostgreSQL installed and running
+- Postman/Insomnia for API testing
+
+### Installation
+
+```bash
+git clone <your-repo-url>
 cd healthcare-backend
-
-Install dependencies:
-This project uses Node.js, so you'll need to install the dependencies from the package.json file.
-
 npm install
+```
+### Database Setup
 
-Set up the PostgreSQL database:
-Ensure you have a PostgreSQL database running. Create a new database for this project. You'll need to manually create the tables. Here is the SQL schema based on your code:
+Run this SQL in your PostgreSQL database:
 
+```sql
+-- Users
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL
 );
 
+-- Patients
 CREATE TABLE patients (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Doctors
 CREATE TABLE doctors (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    specialty VARCHAR(255)
+    specialty VARCHAR(255) NOT NULL
 );
-
+```
+-- Patient-Doctor Mappings
 CREATE TABLE patient_doctor_mappings (
     id SERIAL PRIMARY KEY,
-    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
-    doctor_id INTEGER REFERENCES doctors(id) ON DELETE CASCADE,
+    patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
     UNIQUE (patient_id, doctor_id)
 );
+### Environment Variables
 
-Configure environment variables:
-Create a .env file in the project root with the following variables:
+Create a `.env` file in the root of the project:
 
-PORT=6000
-DATABASE_URL='postgresql://your_user:your_password@localhost:5432/your_db_name'
-JWT_SECRET='your-super-secret-key'
+```env
+PORT=5000
+DATABASE_URL=postgresql://username:password@localhost:5432/healthcare_db
+JWT_SECRET=your_secret_key
+```
+### Run the Server
 
-Run the development server:
-
+```bash
 node server.js
+The server runs at:  
+[http://localhost:5000](http://localhost:5000)
+```
 
-The API will be available at http://localhost:6000.
 
-API Endpoints
-All endpoints require the x-auth-token header for authentication unless otherwise noted.
+## Approach
 
-Authentication
-
-POST /api/auth/register/ - Register a new user (public endpoint)
-
-POST /api/auth/login/ - Log in and get a JWT token (public endpoint)
-
-Patient Management
-
-POST /api/patients/ - Add a new patient
-
-GET /api/patients/ - Retrieve all patients created by the authenticated user
-
-GET /api/patients/:id - Get a specific patient's details
-
-PUT /api/patients/:id - Update patient details
-
-DELETE /api/patients/:id - Delete a patient record
-
-Doctor Management
-
-POST /api/doctors/ - Add a new doctor
-
-GET /api/doctors/ - Retrieve all doctors
-
-GET /api/doctors/:id - Get a specific doctor's details
-
-PUT /api/doctors/:id - Update doctor details
-
-DELETE /api/doctors/:id - Delete a doctor record
-
-Patient-Doctor Mapping
-
-POST /api/mappings/ - Assign a doctor to a patient
-
-GET /api/mappings/ - Retrieve all patient-doctor mappings
-
-GET /api/mappings/:patientId - Get all doctors assigned to a specific patient
-
-DELETE /api/mappings/:id - Remove a doctor from a patient
-
-Screenshots and Results
-This section provides visual proof of the API functionality using curl commands and showing the corresponding database states.
-
-Register a new user: Shows the curl command for user registration and the successful JSON response.
-
-Log in and get a JWT token: Demonstrates a successful login and the JWT token returned in the response.
-
-Add a new patient: Displays a curl command to add a patient and the JSON response with the new patient's details.
-
-Retrieve all patients: Shows the curl command to retrieve the list of patients associated with the authenticated user.
-
-Add a new doctor: Demonstrates adding a new doctor via curl and the JSON response with the doctor's details.
-
-Update a patient's details: Shows a PUT request to update a patient's information and the database view reflecting the change.
-
-Update a doctor's details: Shows a PUT request to update a doctor's information and the database view reflecting the change.
-
-Assign a doctor to a patient: Displays the POST request to map a patient to a doctor and the resulting record in the patient_doctor_mappings table.
-
-Retrieve all patient-doctor mappings: Shows the GET request to retrieve all mappings for the authenticated user.
-
-Delete a patient/doctor/mapping: Displays the DELETE requests for each entity, confirming the record's successful removal.
-
-Credits
-Developed by 
-VARUN SACHDEVA
+- **JWT authentication** protects endpoints  
+- **Role-based control**: Users can only access their own patients/mappings  
+- **Passwords hashed** with bcrypt  
+- **Postgres queries** handled via `pg`  
+- **Error handling** with descriptive messages  
